@@ -1,0 +1,53 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-4">
+  <h2>{{ category.name }}</h2>
+
+  <a
+    href="{% url 'add_plan' %}?category={{ category.id }}"
+    class="btn btn-success mb-3"
+    >Add Plan</a
+  >
+
+  {% if plans %} {% for plan in plans %}
+  <div class="card mb-3">
+    <div class="card-header">
+      {{ plan.title }} ({{ plan.get_plan_type_display }})
+      <!-- daily/weekly/monthly -->
+      <a
+        href="{% url 'edit_plan' plan.pk %}"
+        class="btn btn-sm btn-warning float-end ms-2"
+        >Edit</a
+      >
+      <a
+        href="{% url 'delete_plan' plan.pk %}"
+        class="btn btn-sm btn-danger float-end"
+        >Delete</a
+      >
+    </div>
+    <div class="card-body">
+      <h6>Tasks:</h6>
+      <ul class="list-group">
+        {% for task in plan_tasks|dict_get:plan.id %}
+        <li class="list-group-item d-flex justify-content-between">
+          {{ task.title }} {% if task.is_completed %}
+          <span class="badge bg-success">Done</span>
+          {% else %}
+          <span class="badge bg-warning text-dark">Pending</span>
+          {% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">No tasks yet</li>
+        {% endfor %}
+      </ul>
+      <a
+        href="{% url 'add_task' %}?plan={{ plan.id }}"
+        class="btn btn-primary btn-sm mt-2"
+        >Add Task</a
+      >
+    </div>
+  </div>
+  {% endfor %} {% else %}
+  <p>No plans for this category yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

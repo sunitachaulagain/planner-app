@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Your Tasks</h2>
+    <a href="{% url 'add_task' %}" class="btn btn-primary mb-3">Add Task</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Plan</th>
+                <th>Day</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Estimated Time</th>
+                <th>Date</th>
+                <th>Completed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ task.plan.name }}</td>
+                <td>{{ task.day_number }}</td>
+                <td>{{ task.title }}</td>
+                <td>{{ task.description }}</td>
+                <td>{{ task.estimated_time }}</td>
+                <td>{{ task.task_date }}</td>
+                <td>{% if task.is_completed %}✔{% else %}✖{% endif %}</td>
+                <td>
+                    <a href="{% url 'edit_task' task.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'delete_task' task.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center">No tasks found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

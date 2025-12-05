@@ -15,4 +15,25 @@ urlpatterns = [
     path('categories/add/', views.add_category, name='add_category'),
     path('categories/edit/<int:pk>/', views.edit_category, name='edit_category'),
     path('categories/delete/<int:pk>/', views.delete_category, name='delete_category'),
+    
+    
+    # Plan CRUD
+    path('plans/', views.list_plans, name='list_plans'),
+    path('plans/add/', views.add_plan, name='add_plan'),
+    path('plans/edit/<int:pk>/', views.edit_plan, name='edit_plan'),
+    path('plans/delete/<int:pk>/', views.delete_plan, name='delete_plan'),
+    path('categories/<int:category_id>/plans/', views.list_plans_by_category, name='list_plans_by_category'),
+    
+    #task crud
+    
+    path('tasks/', views.list_tasks, name='list_tasks'),
+    path('tasks/add/', views.add_task, name='add_task'),
+    path('tasks/edit/<int:pk>/', views.edit_task, name='edit_task'),
+    path('tasks/delete/<int:pk>/', views.delete_task, name='delete_task'),
+    
+    
+    #detail view
+    path('categories/<int:category_id>/', views.category_detail_view, name='category_detail'),
+
+
 ]

@@ -1,0 +1,144 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+
+<div class="container my-4">
+  <!-- Top Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <a href="{% url 'list_categories' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm hover-shadow">
+          <div class="card-body">
+            <h5 class="card-title">Categories</h5>
+            <h3 class="card-text">{{ total_categories }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a href="{% url 'list_plans' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm hover-shadow">
+          <div class="card-body">
+            <h5 class="card-title">Plans</h5>
+            <h3 class="card-text">{{ total_plans }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a href="{% url 'list_tasks' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm hover-shadow">
+          <div class="card-body">
+            <h5 class="card-title">Tasks Today</h5>
+            <h3 class="card-text">{{ tasks_today|length }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-3">
+      <a href="{% url 'list_tasks' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm hover-shadow">
+          <div class="card-body">
+            <h5 class="card-title">Completed Tasks</h5>
+            <h3 class="card-text">{{ tasks_completed|length }}</h3>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title text-center">Task Completion (Last 7 Days)</h5>
+          <canvas id="taskChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-4 text-center">
+    <div class="col">
+      <a href="{% url 'add_category' %}" class="btn btn-primary mx-2"
+        >Add Category</a
+      >
+      <a href="{% url 'add_plan' %}" class="btn btn-success mx-2">Add Plan</a>
+      <a href="{% url 'add_task' %}" class="btn btn-warning mx-2">Add Task</a>
+    </div>
+  </div>
+
+  <!-- Today's Tasks List -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Today's Tasks</h5>
+          <ul class="list-group">
+            {% for task in tasks_today %}
+            <li
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <strong>{{ task.plan.title }}</strong> - {{ task.title }}
+              </div>
+              {% if task.is_completed %}
+              <span class="badge bg-success">Done</span>
+              {% else %}
+              <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center text-muted">
+              No tasks for today
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('taskChart').getContext('2d');
+  const taskChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: {{ chart_labels|safe }},
+          datasets: [
+            {
+              label: 'Completed',
+              data: {{ chart_completed|safe }},
+              backgroundColor: '#4caf50'
+            },
+            {
+              label: 'Pending',
+              data: {{ chart_pending|safe }},
+              backgroundColor: '#ffc107'
+            }
+          ]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { position: 'top' },
+              title: { display: true, text: 'Tasks Completed vs Pending' }
+          },
+          scales: {
+              y: { beginAtZero: true }
+          }
+      }
+  });
+</script>
+
+<style>
+  .hover-shadow:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: 0.3s;
+  }
+</style>
+
+{% endblock %}

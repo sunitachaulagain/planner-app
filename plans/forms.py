@@ -31,7 +31,7 @@ class LoginForm(AuthenticationForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control form-control-lg'}))
     
     
-
+# category form
 from .models import Category    
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -41,3 +41,33 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'})
         }    
     
+    
+# plan form
+from .models import Plan
+
+class PlanForm(forms.ModelForm):
+    class Meta:
+        model = Plan
+        fields = ['category', 'title', 'plan_type', 'start_date', 'end_date']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+        
+ #task form       
+from .models import Task
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['plan', 'day_number', 'title', 'description', 'estimated_time', 'is_completed', 'task_date']
+        widgets = {
+            'plan': forms.Select(attrs={'class': 'form-control'}),
+            'day_number': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'estimated_time': forms.NumberInput(attrs={'class': 'form-control'}),
+            'task_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        
