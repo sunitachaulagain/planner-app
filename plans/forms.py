@@ -29,3 +29,15 @@ class SignUpForm(UserCreationForm):
 class LoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-lg'}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control form-control-lg'}))
+    
+    
+
+from .models import Category    
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']  # only name field for category
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'})
+        }    
+    
