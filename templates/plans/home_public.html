@@ -1,0 +1,149 @@
+{% extends 'base.html' %} {% block content %}
+<style>
+  body,
+  html {
+    height: 100%;
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f8ff;
+    color: #333;
+  }
+
+  /* Container to fit screen */
+  .full-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px); /* minus navbar height */
+    padding: 20px;
+    text-align: center;
+  }
+
+  /* Hero Section */
+  .hero h1 {
+    font-size: 3rem;
+    color: #ff6f61;
+    margin-bottom: 0.8rem;
+  }
+
+  .hero p {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero .btn {
+    padding: 0.7rem 2rem;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    margin: 0.3rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .hero .btn-primary {
+    background-color: #ffb347;
+    border: none;
+    color: white;
+  }
+
+  .hero .btn-primary:hover {
+    transform: translateY(-5px);
+    background-color: #ffcc99;
+  }
+
+  .hero .btn-outline-primary {
+    border: 2px solid #ffb347;
+    color: #ffb347;
+  }
+
+  .hero .btn-outline-primary:hover {
+    transform: translateY(-5px);
+    background-color: #fff5eb;
+  }
+
+  /* Features Section */
+  .features {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .feature-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem;
+    width: 200px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .feature-card img {
+    width: 60px;
+    margin-bottom: 0.8rem;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 2.5rem;
+    }
+    .hero p {
+      font-size: 1.1rem;
+    }
+    .features {
+      gap: 1rem;
+    }
+    .feature-card {
+      width: 150px;
+      padding: 1rem;
+    }
+  }
+</style>
+
+<div class="full-screen">
+  <!-- Hero Section -->
+  <div class="hero">
+    <h1>📒 Planner App 📒</h1>
+    <p>Stay organized, track your tasks, and make your day productive!</p>
+    <a href="{% url 'signup' %}" class="btn btn-primary">Sign Up</a>
+    <a href="{% url 'login' %}" class="btn btn-outline-primary">Login</a>
+  </div>
+
+  <!-- Features Section -->
+  <div class="features">
+    <div class="feature-card">
+      <img
+        src="https://img.icons8.com/emoji/96/000000/memo-emoji.png"
+        alt="Organize Tasks"
+      />
+      <h4>Organize Tasks</h4>
+      <p>📋 Plan your day efficiently and never miss a task.</p>
+    </div>
+    <div class="feature-card">
+      <img
+        src="https://img.icons8.com/emoji/96/000000/chart-increasing-emoji.png"
+        alt="Track Progress"
+      />
+      <h4>Track Progress</h4>
+      <p>📈 Visualize your productivity and hit your goals.</p>
+    </div>
+    <div class="feature-card">
+      <img
+        src="https://img.icons8.com/emoji/96/000000/star-emoji.png"
+        alt="Stay Motivated"
+      />
+      <h4>Stay Motivated</h4>
+      <p>🌟 Celebrate wins and keep your energy high!</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

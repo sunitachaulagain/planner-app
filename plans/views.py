@@ -17,6 +17,7 @@ def signup_view(request):
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
+
 @login_required
 def dashboard_view(request):
     return render(request, 'dashboard.html')
@@ -233,3 +234,12 @@ def category_detail_view(request, category_id):
         'plan_tasks': plan_tasks,
     }
     return render(request, 'plans/category_detail.html', context)
+
+
+def home_view(request):
+    if request.user.is_authenticated:
+        # Redirect logged-in users to dashboard
+        return redirect('dashboard')
+    # Show public home page to everyone else
+    return render(request, 'plans/home_public.html')
+
