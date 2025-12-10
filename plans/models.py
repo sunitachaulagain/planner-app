@@ -4,10 +4,17 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
 
+<<<<<<< HEAD
 
 # ==========================
 # Profile
 # ==========================
+=======
+# Create your models here.
+from django.contrib.auth.models import User
+
+#for user profile
+>>>>>>> feature/models
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True, null=True)
@@ -19,6 +26,7 @@ class Profile(models.Model):
         return self.user.username
 
 
+<<<<<<< HEAD
 # Signal to create/update Profile automatically
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
@@ -33,15 +41,28 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
 # ==========================
 class Category(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+=======
+#for plans category
+class Category(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE) 
+>>>>>>> feature/models
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+<<<<<<< HEAD
 
 
 # ==========================
 # Plan
 # ==========================
+=======
+    
+
+# for plan 
+from datetime import timedelta
+
+>>>>>>> feature/models
 class Plan(models.Model):
     PLAN_CHOICES = [
         ('daily', 'Daily'),
@@ -50,7 +71,11 @@ class Plan(models.Model):
         ('custom', 'Custom'),
     ]
 
+<<<<<<< HEAD
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+=======
+    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+>>>>>>> feature/models
     title = models.CharField(max_length=200)
     plan_type = models.CharField(max_length=10, choices=PLAN_CHOICES)
     start_date = models.DateField()
@@ -68,6 +93,7 @@ class Plan(models.Model):
                 self.end_date = self.start_date + timedelta(days=29)  # simple 30-day month
         super().save(*args, **kwargs)
 
+<<<<<<< HEAD
     @property
     def duration_days(self):
         return (self.end_date - self.start_date).days + 1
@@ -81,6 +107,15 @@ class Plan(models.Model):
 # ==========================
 class Task(models.Model):
     plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name='tasks')
+=======
+    def __str__(self):
+        return f"{self.title} ({self.user.username})"
+    
+    
+# for task
+class Task(models.Model):
+    plan = models.ForeignKey('Plan', on_delete=models.CASCADE,related_name='tasks')
+>>>>>>> feature/models
     day_number = models.PositiveIntegerField()  # which day of the plan
     task_date = models.DateField(blank=True, null=True)  # auto-calculated
     title = models.CharField(max_length=200)

@@ -130,3 +130,4 @@ LOGIN_REDIRECT_URL = 'dashboard'
 
 # Where to redirect after logout
 LOGOUT_REDIRECT_URL = 'login'
+
