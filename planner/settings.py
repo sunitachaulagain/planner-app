@@ -30,7 +30,7 @@ DEBUG = True
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-ALLOWED_HOSTS = ['planner-app-1-zuiv.onrender.com', 'planner-app-cmqy.onrender.com']
+ALLOWED_HOSTS = ['planner-app-1-zuiv.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
