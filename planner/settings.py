@@ -25,7 +25,10 @@ SECRET_KEY = 'django-insecure-3j)!5c0^u(5p9k@mgs_=hietj7@a)xjkv1k2h80w_r32obizt2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+ALLOWED_HOSTS = ["planner-app.onrender.com"]
 
 
 # Application definition
