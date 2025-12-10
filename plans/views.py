@@ -19,10 +19,6 @@ def signup_view(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            
-            # Ensure profile exists
-            Profile.objects.get_or_create(user=user)
-            
             login(request, user)
             return redirect('dashboard')
     else:
