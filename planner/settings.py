@@ -30,7 +30,7 @@ DEBUG = True
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-ALLOWED_HOSTS = ["planner-app.onrender.com"]
+ALLOWED_HOSTS = ["planner-app-cmqy.onrender.com"]
 
 
 # Application definition
