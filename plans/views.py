@@ -1,69 +1,106 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
-from .forms import SignUpForm
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+import datetime
 
+from .forms import SignUpForm, LoginForm, CategoryForm, PlanForm, TaskForm, ProfileForm
+from .models import Profile, Category, Plan, Task
+
+# ===========================
+# AUTH
+# ===========================
 def signup_view(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('dashboard')  # we’ll create this later
+            return redirect('dashboard')
     else:
         form = SignUpForm()
     return render(request, 'registration/signup.html', {'form': form})
 
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+def login_view(request):
+    form = LoginForm(request, data=request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            user = form.get_user()
+            Profile.objects.get_or_create(user=user)
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.username}!")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Invalid username or password")
+    return render(request, 'registration/login.html', {'form': form})
 
 
+def home_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'plans/home_public.html')
+
+
+# ===========================
+# DASHBOARD
+# ===========================
 @login_required
 def dashboard_view(request):
-    return render(request, 'dashboard.html')
+    today = datetime.date.today()
+    today_tasks = Task.objects.filter(user=request.user, task_date=today)
+
+    # Group tasks: category -> plan -> list of tasks
+    grouped = {}
+    for task in today_tasks:
+        cat_name = task.plan.category.name
+        plan_title = task.plan.title
+        grouped.setdefault(cat_name, {}).setdefault(plan_title, []).append(task)
+
+    # Pie chart data
+    completed_count = today_tasks.filter(is_completed=True).count()
+    pending_count = today_tasks.filter(is_completed=False).count()
+    today_pie = [completed_count, pending_count]
+
+    context = {
+        "grouped": grouped,
+        "today_pie": today_pie,
+        "profile": request.user.profile,  # signals ensure profile exists
+    }
+    return render(request, 'plans/dashboard.html', context)
 
 
-
-#for day 3 
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Category
-from .forms import CategoryForm
-from django.contrib.auth.decorators import login_required
-
-# List categories
+# ===========================
+# CATEGORIES
+# ===========================
 @login_required
 def list_categories(request):
     categories = Category.objects.filter(user=request.user)
     return render(request, 'plans/category_list.html', {'categories': categories})
 
-# Add category
+
 @login_required
 def add_category(request):
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            category = form.save(commit=False)
-            category.user = request.user
-            category.save()
-            return redirect('list_categories')
-    else:
-        form = CategoryForm()
+    form = CategoryForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save(commit=False)
+        obj.user = request.user
+        obj.save()
+        return redirect('list_categories')
     return render(request, 'plans/category_form.html', {'form': form, 'title': 'Add Category'})
 
-# Edit category
+
 @login_required
 def edit_category(request, pk):
     category = get_object_or_404(Category, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
-        if form.is_valid():
-            form.save()
-            return redirect('list_categories')
-    else:
-        form = CategoryForm(instance=category)
+    form = CategoryForm(request.POST or None, instance=category)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('list_categories')
     return render(request, 'plans/category_form.html', {'form': form, 'title': 'Edit Category'})
 
-# Delete category
+
 @login_required
 def delete_category(request, pk):
     category = get_object_or_404(Category, pk=pk, user=request.user)
@@ -73,173 +110,133 @@ def delete_category(request, pk):
     return render(request, 'plans/category_confirm_delete.html', {'category': category})
 
 
-
-#plans
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PlanForm
-from .models import Plan, Category
-from django.contrib.auth.decorators import login_required
-
+# ===========================
+# PLANS
+# ===========================
 @login_required
 def list_plans(request):
     plans = Plan.objects.filter(user=request.user)
     return render(request, 'plans/plan_list.html', {'plans': plans})
 
+
 @login_required
 def add_plan(request):
-    if request.method == 'POST':
-        form = PlanForm(request.POST)
-        if form.is_valid():
-            plan = form.save(commit=False)
-            plan.user = request.user
-            plan.save()
-            return redirect('list_plans')
-    else:
-        form = PlanForm()
+    category_id = request.GET.get('category')
+    category = get_object_or_404(Category, pk=category_id, user=request.user)
+    form = PlanForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        plan = form.save(commit=False)
+        plan.user = request.user
+        plan.category = category
+        plan.save()
+        return redirect('list_plans_by_category', category_id=category.id)
     return render(request, 'plans/plan_form.html', {'form': form})
+
 
 @login_required
 def edit_plan(request, pk):
     plan = get_object_or_404(Plan, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = PlanForm(request.POST, instance=plan)
-        if form.is_valid():
-            form.save()
-            return redirect('list_plans')
-    else:
-        form = PlanForm(instance=plan)
+    form = PlanForm(request.POST or None, instance=plan)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('list_plans')
     return render(request, 'plans/plan_form.html', {'form': form})
 
 @login_required
 def delete_plan(request, pk):
     plan = get_object_or_404(Plan, pk=pk, user=request.user)
-    plan.delete()
-    return redirect('list_plans')
+    category_id = plan.category.id  # keep for redirect
 
+    if request.method == 'POST':
+        plan.delete()
+        return redirect('list_plans_by_category', category_id=category_id)
+
+    return render(request, 'plans/plan_confirm_delete.html', {'plan': plan})
+
+
+
+@login_required
 def list_plans_by_category(request, category_id):
-    user = request.user
-    category = get_object_or_404(Category, pk=category_id, user=user)
-    plans = Plan.objects.filter(user=user, category=category)
-    return render(request, 'plans/plan_list.html', {'plans': plans, 'category': category})
-
-
-
-from django.shortcuts import render
-from .models import Category, Plan, Task
-from django.utils import timezone
-from datetime import timedelta
-
-def dashboard_view(request):
-    user = request.user
-    today = timezone.localdate()
-
-    # Stats
-    total_categories = Category.objects.filter(user=user).count()
-    total_plans = Plan.objects.filter(user=user).count()
-    tasks_today = Task.objects.filter(
-        user=user, plan__start_date__lte=today, plan__end_date__gte=today
-    )
-    tasks_completed = tasks_today.filter(is_completed=True)  # corrected
-
-    # Chart Data: last 7 days
-    chart_labels = []
-    chart_completed = []
-    chart_pending = []
-
-    for i in range(6, -1, -1):
-        day = today - timedelta(days=i)
-        day_tasks = Task.objects.filter(
-            user=user, plan__start_date__lte=day, plan__end_date__gte=day
-        )
-        chart_labels.append(day.strftime("%b %d"))
-        chart_completed.append(day_tasks.filter(is_completed=True).count())  # corrected
-        chart_pending.append(day_tasks.filter(is_completed=False).count())  # corrected
-
-    context = {
-        'total_categories': total_categories,
-        'total_plans': total_plans,
-        'tasks_today': tasks_today,
-        'tasks_completed': tasks_completed,
-        'chart_labels': chart_labels,
-        'chart_completed': chart_completed,
-        'chart_pending': chart_pending,
-    }
-
-    return render(request, 'plans/dashboard.html', context)
-
-
-
-
-#task 
-from .forms import TaskForm
-from .models import Task, Plan
-from django.shortcuts import render, redirect, get_object_or_404
-
-# List Tasks
-def list_tasks(request):
-    tasks = Task.objects.filter(user=request.user)
-    return render(request, 'plans/task_list.html', {'tasks': tasks})
-
-# Add Task
-def add_task(request):
-    if request.method == 'POST':
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            task = form.save(commit=False)
-            task.user = request.user
-            task.save()
-            return redirect('list_tasks')
-    else:
-        form = TaskForm()
-    return render(request, 'plans/task_form.html', {'form': form})
-
-# Edit Task
-def edit_task(request, pk):
-    task = get_object_or_404(Task, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            return redirect('list_tasks')
-    else:
-        form = TaskForm(instance=task)
-    return render(request, 'plans/task_form.html', {'form': form})
-
-# Delete Task
-def delete_task(request, pk):
-    task = get_object_or_404(Task, pk=pk, user=request.user)
-    if request.method == 'POST':
-        task.delete()
-        return redirect('list_tasks')
-    return render(request, 'plans/task_confirm_delete.html', {'task': task})
-
-
-
-from django.shortcuts import render, get_object_or_404
-from .models import Category, Plan, Task
-
-def category_detail_view(request, category_id):
     category = get_object_or_404(Category, pk=category_id, user=request.user)
     plans = Plan.objects.filter(category=category, user=request.user)
 
-    # Optional: load tasks for each plan
-    plan_tasks = {}
+    plans_with_tasks = []
     for plan in plans:
-        tasks = Task.objects.filter(plan=plan, user=request.user)
-        plan_tasks[plan.id] = tasks
+        tasks = Task.objects.filter(plan=plan, user=request.user).order_by('task_date', 'day_number')
+        total = tasks.count()
+        completed = tasks.filter(is_completed=True).count()
+        percent = int((completed / total) * 100) if total else 0
 
-    context = {
-        'category': category,
-        'plans': plans,
-        'plan_tasks': plan_tasks,
-    }
-    return render(request, 'plans/category_detail.html', context)
+        # Group tasks by day_number
+        tasks_by_day = {}
+        for task in tasks:
+            tasks_by_day.setdefault(task.day_number or 1, []).append(task)
+
+        plans_with_tasks.append({
+            'plan': plan,
+            'tasks': tasks,
+            'tasks_by_day': tasks_by_day,
+            'total_tasks': total,
+            'completed_tasks': completed,
+            'percent': percent,
+        })
+
+    return render(request, 'plans/plan_list.html', {'category': category, 'plans_with_tasks': plans_with_tasks})
 
 
-def home_view(request):
-    if request.user.is_authenticated:
-        # Redirect logged-in users to dashboard
-        return redirect('dashboard')
-    # Show public home page to everyone else
-    return render(request, 'plans/home_public.html')
+# ===========================
+# TASKS
+# ===========================
 
+
+@login_required
+def add_task(request):
+    plan_id = request.GET.get('plan')
+    plan = get_object_or_404(Plan, id=plan_id, user=request.user)
+    form = TaskForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        task = form.save(commit=False)
+        task.user = request.user
+        task.plan = plan
+        task.save()
+        return redirect('list_plans_by_category', category_id=plan.category.id)
+    return render(request, 'plans/task_form.html', {'form': form, 'plan': plan})
+
+
+@login_required
+def edit_task(request, pk):
+    task = get_object_or_404(Task, pk=pk, user=request.user)
+    form = TaskForm(request.POST or None, instance=task)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('list_tasks')
+    return render(request, 'plans/task_form.html', {'form': form})
+
+@login_required
+def delete_task(request, pk):
+    task = get_object_or_404(Task, pk=pk, user=request.user)
+    if request.method == 'POST':
+        category_id = task.plan.category.id  # redirect to the category plan list
+        task.delete()
+        return redirect('list_plans_by_category', category_id=category_id)
+
+    return render(request, 'plans/task_confirm_delete.html', {
+        'task': task
+    })
+
+
+@login_required
+def toggle_task_complete(request, task_id):
+    task = get_object_or_404(Task, id=task_id, user=request.user)
+    task.is_completed = not task.is_completed
+    task.save()
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+
+# ===========================
+# PROFILE
+# ===========================
+@login_required
+def profile_view(request):
+    profile = request.user.profile
+    return render(request, 'plans/profile.html', {'profile': profile})

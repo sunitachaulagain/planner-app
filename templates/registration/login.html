@@ -13,6 +13,11 @@
       <h2 class="card-title mb-0">Login</h2>
     </div>
     <div class="card-body p-4">
+      <!-- Messages block -->
+      {% if messages %} {% for message in messages %}
+      <div class="alert alert-danger">{{ message }}</div>
+      {% endfor %} {% endif %}
+
       <form method="post">
         {% csrf_token %}
         <div class="mb-3">

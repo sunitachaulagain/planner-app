@@ -1,20 +1,69 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-  <h2>Your Plans</h2>
-  <a href="{% url 'add_plan' %}" class="btn btn-success mb-3">Add Plan</a>
-  <ul class="list-group">
-    {% for plan in plans %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ plan.title }} ({{ plan.plan_type }})
-        <span>
-          <a href="{% url 'edit_plan' plan.pk %}" class="btn btn-sm btn-primary">Edit</a>
-          <a href="{% url 'delete_plan' plan.pk %}" class="btn btn-sm btn-danger">Delete</a>
-        </span>
-      </li>
-    {% empty %}
-      <li class="list-group-item">No plans yet.</li>
-    {% endfor %}
-  </ul>
+  <h2 class="mb-4">Plans for Category: {{ category.name }}</h2>
+  <a href="{% url 'add_plan' %}?category={{ category.id }}" class="btn btn-success mb-4">Add Plan</a>
+
+  {% if plans_with_tasks %}
+    <div class="row g-4">
+      {% for item in plans_with_tasks %}
+        <div class="col-md-6">
+          <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light">
+              <div>
+                <strong>{{ item.plan.title }}</strong>
+                <span class="text-muted">({{ item.percent }}%)</span>
+              </div>
+              <div class="d-flex gap-2">
+                <form method="post" action="{% url 'delete_plan' item.plan.id %}" style="display:inline">
+                  {% csrf_token %}
+                  <a href="{% url 'delete_plan' item.plan.id %}" class="btn btn-sm btn-danger">Delete</a>
+                </form>
+              </div>
+            </div>
+            <div class="card-body">
+              {% if item.tasks_by_day %}
+                {% for day, tasks in item.tasks_by_day.items %}
+                  {% if item.plan.end_date|date:"Y-m-d" > item.plan.start_date|date:"Y-m-d" %}
+                    <h6 class="mb-2">Day {{ day }}</h6>
+                  {% endif %}
+                  <ul class="list-group mb-3">
+                    {% for task in tasks %}
+                      <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <form method="post" action="{% url 'toggle_task_complete' task.id %}" class="d-flex flex-column gap-1 mb-0">
+                            {% csrf_token %}
+                            <div class="d-flex align-items-center gap-2">
+                              <input type="checkbox" name="is_completed" onchange="this.form.submit()" {% if task.is_completed %}checked{% endif %}>
+                              <span{% if task.is_completed %} class="text-decoration-line-through text-muted"{% endif %}>
+                                {{ task.title }}
+                              </span>
+                            </div>
+                            {% if task.description %}
+                              <small class="text-muted ms-4">{{ task.description }}</small>
+                            {% endif %}
+                          </form>
+                          <form method="post" action="{% url 'delete_task' task.pk %}" style="display:inline">
+                            {% csrf_token %}
+                              <a href="{% url 'delete_task' task.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                          </form>
+
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted mb-3">No tasks yet.</p>
+              {% endif %}
+              <a href="{% url 'add_task' %}?plan={{ item.plan.id }}" class="btn btn-sm btn-success">Add Task</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No plans available for this category.</p>
+  {% endif %}
 </div>
 {% endblock %}

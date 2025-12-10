@@ -1,13 +1,14 @@
 {% extends 'base.html' %} {% block content %}
-<div class="container mt-4">
-  <h3>Are you sure you want to delete the task?</h3>
-  <p><strong>{{ task.title }}</strong></p>
-
+<div class="container mt-4" style="max-width: 500px">
+  <h2>Delete Plan</h2>
+  <p>
+    Are you sure you want to delete the plan: <strong>{{ plan.title }}</strong>?
+  </p>
   <form method="post">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Yes, Delete</button>
     <a
-      href="{% url 'list_plans_by_category' task.plan.category.id %}"
+      href="{% url 'list_plans_by_category' plan.category.id %}"
       class="btn btn-secondary"
       >Cancel</a
     >

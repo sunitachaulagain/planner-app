@@ -1,9 +1,13 @@
 from django.db import models
-
-# Create your models here.
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from datetime import timedelta
 
-#for user profile
+
+# ==========================
+# Profile
+# ==========================
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True, null=True)
@@ -15,18 +19,29 @@ class Profile(models.Model):
         return self.user.username
 
 
-#for plans category
+# Signal to create/update Profile automatically
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    else:
+        instance.profile.save()
+
+
+# ==========================
+# Category
+# ==========================
 class Category(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE) 
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
-    
 
-# for plan 
-from datetime import timedelta
 
+# ==========================
+# Plan
+# ==========================
 class Plan(models.Model):
     PLAN_CHOICES = [
         ('daily', 'Daily'),
@@ -35,7 +50,7 @@ class Plan(models.Model):
         ('custom', 'Custom'),
     ]
 
-    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     plan_type = models.CharField(max_length=10, choices=PLAN_CHOICES)
     start_date = models.DateField()
@@ -53,13 +68,19 @@ class Plan(models.Model):
                 self.end_date = self.start_date + timedelta(days=29)  # simple 30-day month
         super().save(*args, **kwargs)
 
+    @property
+    def duration_days(self):
+        return (self.end_date - self.start_date).days + 1
+
     def __str__(self):
         return f"{self.title} ({self.user.username})"
-    
-    
-# for task
+
+
+# ==========================
+# Task
+# ==========================
 class Task(models.Model):
-    plan = models.ForeignKey('Plan', on_delete=models.CASCADE,related_name='tasks')
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name='tasks')
     day_number = models.PositiveIntegerField()  # which day of the plan
     task_date = models.DateField(blank=True, null=True)  # auto-calculated
     title = models.CharField(max_length=200)

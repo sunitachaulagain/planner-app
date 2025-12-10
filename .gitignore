@@ -1,6 +1,29 @@
-venv/
+# Python cache files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+*.venv
+
+# Database
 db.sqlite3
-*.env
+
+# Media files (user uploads)
 media/
+
+# Django migrations
+*/migrations/*.pyc
+*/migrations/__pycache__/
+
+# IDE / Editor files
+*.idea/
+*.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

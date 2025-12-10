@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container my-4" style="max-width: 500px">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="card-title mb-3">{{ request.user.username }}'s Profile</h2>
+
+      <p><strong>Email:</strong> {{ request.user.email|default:"N/A" }}</p>
+
+      <a
+        href="{% url 'password_change' %}"
+        class="btn btn-sm btn-outline-primary mt-3"
+      >
+        Change Password
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
