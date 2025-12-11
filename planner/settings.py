@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'plans',
     'widget_tweaks',
+    'plans.apps.PlansConfig',
 
 ]
 
